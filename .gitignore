@@ -1,0 +1,25 @@
+# IDE and Editor files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Dependencies
+vendor/
+node_modules/
+
+# Logs and databases
+*.log
+*.sqlite
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project specific
+temp/
+tmp/
+ uploads/
