@@ -49,20 +49,21 @@
                             <label for="num_medidores" class="form-label fw-bold text-secondary mb-1">
                                 <i class="bi bi-list-ol me-1 text-primary"></i> Capacidad del Banco (Nº Medidores)
                             </label>
-                            <!-- El onchange expandirá o contraerá las filas enviando el dato sin borrar los inputs -->
-                            <select name="num_medidores" id="num_medidores"
-                                class="form-select fw-bold border-2 text-dark"
-                                onchange="document.getElementById('formLote').submit();">
-                                <?php
-                                // Algunas opciones viables en la industria
-                                $opciones = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20];
-                                foreach ($opciones as $opt):
-                                    ?>
-                                    <option value="<?php echo $opt; ?>" <?php echo ($num_medidores == $opt) ? 'selected' : ''; ?>>
-                                        <?php echo $opt; ?> Medidores en prueba
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <!-- El input permitirá digitar libremente hasta un máximo de 20 -->
+                            <div class="input-group">
+                                <input type="number" name="num_medidores" id="num_medidores"
+                                    class="form-control fw-bold border-2 text-dark"
+                                    value="<?php echo $num_medidores; ?>" min="1" max="20"
+                                    onchange="
+                                        let v = parseInt(this.value);
+                                        if (isNaN(v) || v < 1) this.value = 1;
+                                        if (v > 20) this.value = 20;
+                                        document.getElementById('formLote').submit();
+                                    ">
+                                <span class="input-group-text fw-bold bg-light text-secondary border-2">
+                                    Medidores en prueba
+                                </span>
+                            </div>
                             <div class="form-text small mt-1"><i class="bi bi-info-circle-fill text-primary"></i> <em>Puedes cambiar esta
                                     cantidad en cualquier momento, los datos ingresados no se perderán.</em></div>
                         </div>
