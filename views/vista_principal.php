@@ -5,8 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Planilla de Ensayo Metrológico Dinámico</title>
-    <!-- Bootstrap CSS CDN -->
+    <!-- Fuentes y Tipografía -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS y Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Estilos Personalizados -->
     <link href="assets/css/styles.css" rel="stylesheet">
 </head>
@@ -29,7 +34,7 @@
 
                         <div class="col-md-6 mb-3 mb-md-0">
                             <label for="tipo_verificacion" class="form-label fw-bold text-secondary mb-1">
-                                <i class="me-1">&#9881;</i> Parámetro NMP 005
+                                <i class="bi bi-gear-fill me-1"></i> Parámetro NMP 005
                             </label>
                             <!-- El onchange someterá el formulario para recalcular los límites instantáneamente en backend -->
                             <select name="tipo_verificacion" id="tipo_verificacion"
@@ -42,7 +47,7 @@
 
                         <div class="col-md-6">
                             <label for="num_medidores" class="form-label fw-bold text-secondary mb-1">
-                                <i class="me-1">&#128207;</i> Capacidad del Banco (Nº Medidores)
+                                <i class="bi bi-list-ol me-1 text-primary"></i> Capacidad del Banco (Nº Medidores)
                             </label>
                             <!-- El onchange expandirá o contraerá las filas enviando el dato sin borrar los inputs -->
                             <select name="num_medidores" id="num_medidores"
@@ -58,7 +63,7 @@
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            <div class="form-text small mt-1"><i class="text-info">&#9432;</i> <em>Puedes cambiar esta
+                            <div class="form-text small mt-1"><i class="bi bi-info-circle-fill text-primary"></i> <em>Puedes cambiar esta
                                     cantidad en cualquier momento, los datos ingresados no se perderán.</em></div>
                         </div>
 

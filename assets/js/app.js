@@ -70,6 +70,13 @@ document.addEventListener("DOMContentLoaded", function() {
     function calcularBancoCompleto() {
         const tipo = tipoVerifSelect.value;
         
+        // Estructura 2D para mantener el estado aislado por medidor en este barrido
+        let matriz = {};
+        for (let i = 1; i <= window.numMedidores; i++) {
+            matriz[i] = {};
+        }
+
+        // --- PASO 1: Calcular valores nominales e inyectar en matriz ---
         caudales.forEach(q => {
             const vpInput = document.querySelector(`.vp-input[data-q="${q}"]`);
             if (!vpInput) return;
@@ -89,37 +96,109 @@ document.addEventListener("DOMContentLoaded", function() {
                 const errSpan = document.getElementById(`err_${i}_${q}`);
                 const bSpan   = document.getElementById(`badge_${i}_${q}`);
 
+                resetFila(viSpan, errSpan, bSpan);
+
                 if (liInput && lfInput && !isNaN(vp) && vp !== 0) {
                     const li = parseFloat(liInput.value.replace(',', '.'));
                     const lf = parseFloat(lfInput.value.replace(',', '.'));
 
                     if (!isNaN(li) && !isNaN(lf)) {
-                        // Matemáticas
                         const vi = lf - li;
-                        const err = ((vi - vp) / vp) * 100;
+                        const err = parseFloat((((vi - vp) / vp) * 100).toFixed(1));
                         const isConforme = Math.abs(err) <= emp;
 
-                        // Reflejo en UI
-                        viSpan.textContent = vi.toFixed(2);
-                        errSpan.textContent = err.toFixed(1) + '%';
-                        
-                        if (isConforme) {
-                            errSpan.className = 'fw-bold fs-6 text-success';
-                            bSpan.className = 'badge w-100 py-2 bg-success';
-                            bSpan.textContent = 'CONFORME';
-                        } else {
-                            errSpan.className = 'fw-bold fs-6 text-danger';
-                            bSpan.className = 'badge w-100 py-2 bg-danger';
-                            bSpan.textContent = 'NO CONFORME';
-                        }
+                        matriz[i][q] = {
+                            calculado: true,
+                            vi: vi, err: err, emp: emp, isConforme: isConforme,
+                            viSpan: viSpan, errSpan: errSpan, bSpan: bSpan
+                        };
                     } else {
-                        resetFila(viSpan, errSpan, bSpan);
+                        matriz[i][q] = { calculado: false, viSpan, errSpan, bSpan };
                     }
                 } else {
-                    resetFila(viSpan, errSpan, bSpan);
+                    matriz[i][q] = { calculado: false, viSpan, errSpan, bSpan };
                 }
             }
         });
+
+        // --- PASO 2: Renderizar UI y aplicar filtrado cruzado de signos ---
+        for (let i = 1; i <= window.numMedidores; i++) {
+            const medidor = matriz[i];
+            let allCalculado = true;
+
+            // Render base
+            caudales.forEach(q => {
+                const dto = medidor[q];
+                if (dto && dto.calculado) {
+                    dto.viSpan.textContent = dto.vi.toFixed(2);
+                    dto.errSpan.textContent = dto.err.toFixed(1) + '%';
+                    
+                    // VALIDACIÓN DE PRUEBA MAL EJECUTADA O ERROR DE DIGITACIÓN (Físicamente imposible)
+                    if (dto.err < -100.0) {
+                        dto.errSpan.className = 'fw-bold fs-6 text-warning';
+                        dto.bSpan.className = 'badge w-100 py-2 bg-warning text-dark border border-warning';
+                        dto.bSpan.textContent = 'PRUEBA INVÁLIDA';
+                        return; // Omitimos evaluación estándar para este caudal
+                    }
+
+                    if (tipo === 'inicial') {
+                        if (dto.isConforme) {
+                            dto.errSpan.className = 'fw-bold fs-6 text-success';
+                            dto.bSpan.className = 'badge w-100 py-2 bg-success';
+                            dto.bSpan.textContent = 'CONFORME';
+                        } else {
+                            dto.errSpan.className = 'fw-bold fs-6 text-danger';
+                            dto.bSpan.className = 'badge w-100 py-2 bg-danger';
+                            dto.bSpan.textContent = 'NO CONFORME';
+                        }
+                    } else { // tipo === 'posterior'
+                        if (dto.isConforme) {
+                            dto.errSpan.className = 'fw-bold fs-6 text-success';
+                            dto.bSpan.className = 'badge w-100 py-2 bg-success';
+                            dto.bSpan.textContent = 'OPERATIVO';
+                        } else {
+                            dto.errSpan.className = 'fw-bold fs-6 text-danger';
+                            dto.bSpan.className = 'badge w-100 py-2 bg-danger';
+                            if (dto.err > 0) {
+                                dto.bSpan.textContent = 'SOBRE-REGISTRA';
+                            } else {
+                                dto.bSpan.textContent = 'SUB-REGISTRA';
+                            }
+                        }
+                    }
+                } else {
+                    allCalculado = false;
+                }
+            });
+
+            // REGLA INTELIGENTE DE SIGNOS Y MITAD DEL EMP (Solo Iniciales que tengan los 3 caudales procesados)
+            if (tipo === 'inicial' && allCalculado) {
+                const eq1 = medidor['q1'].err;
+                const eq2 = medidor['q2'].err;
+                const eq3 = medidor['q3'].err;
+
+                // Extraemos signo. (El 0 no lo cuenta como direccional)
+                const sq1 = Math.sign(eq1);
+                const sq2 = Math.sign(eq2);
+                const sq3 = Math.sign(eq3);
+
+                if (sq1 === sq2 && sq2 === sq3 && sq1 !== 0) {
+                    // Tendencia detectada. Validamos restricción: 1/2 del EMP
+                    const chkQ1 = Math.abs(eq1) <= (medidor['q1'].emp / 2);
+                    const chkQ2 = Math.abs(eq2) <= (medidor['q2'].emp / 2);
+                    const chkQ3 = Math.abs(eq3) <= (medidor['q3'].emp / 2);
+
+                    // Si NINGUNO cumple con ser <= a la mitad de su EMP, invalida todo el medidor
+                    if (!chkQ1 && !chkQ2 && !chkQ3) {
+                        caudales.forEach(q => {
+                            medidor[q].bSpan.className = 'badge w-100 py-2 bg-danger border border-2 border-danger';
+                            medidor[q].errSpan.className = 'fw-bold fs-6 text-danger';
+                            medidor[q].bSpan.textContent = 'NO CONF. (SIGNOS)';
+                        });
+                    }
+                }
+            }
+        }
     }
 
     // Función Limpiadora UI
