@@ -91,8 +91,8 @@
                                         Patrón (Litros) dictado para <?php echo strtoupper($q); ?></label>
                                     <input type="number" name="vol_patron[<?php echo $q; ?>]"
                                         class="form-control text-center vp-input mx-auto" data-q="<?php echo $q; ?>"
-                                        value="<?php echo $vol_patrones[$q]; ?>" step="0.001" inputmode="decimal"
-                                        placeholder="0.000">
+                                        value="<?php echo $vol_patrones[$q]; ?>" step="0.01" min="0" max="9999.99" inputmode="decimal"
+                                        placeholder="0.00">
                                 </div>
 
                                 <!-- 2. REJILLA DINÁMICA DE N MEDIDORES -->
@@ -132,7 +132,7 @@
                                                             name="medidores[<?php echo $i; ?>][<?php echo $q; ?>][li]"
                                                             class="form-control li-input" data-m="<?php echo $i; ?>"
                                                             data-q="<?php echo $q; ?>"
-                                                            value="<?php echo $medidores[$i][$q]['li']; ?>" step="0.001"
+                                                            value="<?php echo $medidores[$i][$q]['li']; ?>" step="0.01" min="0" max="9999.99"
                                                             inputmode="decimal">
                                                     </td>
                                                     <td>
@@ -140,7 +140,7 @@
                                                             name="medidores[<?php echo $i; ?>][<?php echo $q; ?>][lf]"
                                                             class="form-control lf-input" data-m="<?php echo $i; ?>"
                                                             data-q="<?php echo $q; ?>"
-                                                            value="<?php echo $medidores[$i][$q]['lf']; ?>" step="0.001"
+                                                            value="<?php echo $medidores[$i][$q]['lf']; ?>" step="0.01" min="0" max="9999.99"
                                                             inputmode="decimal">
                                                     </td>
                                                     <td class="text-center">

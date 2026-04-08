@@ -3,17 +3,66 @@ document.addEventListener("DOMContentLoaded", function() {
     const caudales = ['q3', 'q2', 'q1'];
     // NOTA IMPORTANTE: window.numMedidores es definido globalmente en la vista antes de cargar este script
 
-    // Listener en tiempo real a los inputs de números (sin hacer form submit)
+    // Bloquear caracteres no deseados en campos numéricos (e, E, -, +)
     document.querySelectorAll('input[type="number"]').forEach(el => {
-        el.addEventListener('input', calcularBancoCompleto);
+        el.addEventListener('keydown', function(e) {
+            if (['e', 'E', '-', '+'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        
+        el.addEventListener('input', function(e) {
+            let val = this.value;
+            
+            if (val !== '') {
+                // Validar min 0 y max 9999.99
+                let num = parseFloat(val);
+                if (!isNaN(num)) {
+                    if (num < 0) {
+                        this.value = 0;
+                        val = "0";
+                    } else if (num > 9999.99) {
+                        this.value = 9999.99;
+                        val = "9999.99";
+                    }
+                }
+
+                // Validar maximo 4 digitos enteros y 2 decimales
+                if (val.includes('.')) {
+                    let parts = val.split('.');
+                    let intPart = parts[0];
+                    let decPart = parts[1];
+                    let changed = false;
+
+                    if (intPart.length > 4) {
+                        intPart = intPart.slice(0, 4);
+                        changed = true;
+                    }
+                    if (decPart && decPart.length > 2) {
+                        decPart = decPart.slice(0, 2);
+                        changed = true;
+                    }
+
+                    if (changed) {
+                        this.value = `${intPart}.${decPart}`;
+                    }
+                } else {
+                    if (val.length > 4) {
+                        this.value = val.slice(0, 4);
+                    }
+                }
+            }
+
+            calcularBancoCompleto();
+        });
     });
 
-    // Formato decimal fijo (ej: 0.000) al salir de foco para Volúmenes Patrón
-    document.querySelectorAll('.vp-input').forEach(input => {
+    // Formato decimal fijo (ej: 0.00) al salir de foco para todos los inputs numéricos (VP, Li, Lf)
+    document.querySelectorAll('input[type="number"]').forEach(input => {
         input.addEventListener('blur', function() {
             if (this.value.trim() !== '') {
                 const val = parseFloat(this.value.replace(',', '.'));
-                if (!isNaN(val)) this.value = val.toFixed(3);
+                if (!isNaN(val)) this.value = val.toFixed(2);
             }
         });
     });
